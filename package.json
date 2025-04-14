@@ -1,0 +1,41 @@
+{
+  "name": "bip39-to-ssh",
+  "version": "1.0.0",
+  "description": "Generate and manage SSH keys from BIP39 seed phrases with support for multiple derivation paths and optional passphrase protection",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js"
+  },
+  "keywords": [
+    "bip39",
+    "ssh",
+    "ed25519",
+    "key-generation",
+    "cryptography",
+    "security"
+  ],
+  "author": "seedfourtytwo",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/seedfourtytwo/BIP39toSSH.git"
+  },
+  "bugs": {
+    "url": "https://github.com/seedfourtytwo/BIP39toSSH/issues"
+  },
+  "homepage": "https://github.com/seedfourtytwo/BIP39toSSH#readme",
+  "dependencies": {
+    "bip39": "^3.1.0",
+    "body-parser": "^1.20.2",
+    "ejs": "^3.1.9",
+    "express": "^4.18.2",
+    "tweetnacl": "^1.0.3"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.0"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}

@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BIP39 to SSH Key Generator</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <script src="/js/ssh-test-server.js"></script>
+    <style>
+        .loading {
+            display: none;
+        }
+        .loading.active {
+            display: block;
+        }
+        .result {
+            display: none;
+        }
+        .result.active {
+            display: block;
+        }
+        .mnemonic {
+            display: none;
+        }
+        .mnemonic.active {
+            display: block;
+        }
+        .tab-btn {
+            @apply text-gray-500 hover:text-gray-700 hover:border-gray-300 border-transparent;
+        }
+        .tab-btn.active {
+            @apply border-blue-500 text-blue-600;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <h1 class="text-3xl font-bold text-center mb-8">BIP39 to SSH Key Generator</h1>
+        
+        <!-- Tab Navigation -->
+        <div class="max-w-2xl mx-auto mb-6">
+            <div class="border-b border-gray-200">
+                <nav class="-mb-px flex" aria-label="Tabs">
+                    <button class="tab-btn active w-1/3 py-4 px-1 text-center border-b-2 font-medium text-sm" data-tab="generate">
+                        Generate Keys
+                    </button>
+                    <button class="tab-btn w-1/3 py-4 px-1 text-center border-b-2 font-medium text-sm" data-tab="test">
+                        Test Keys
+                    </button>
+                    <button class="tab-btn w-1/3 py-4 px-1 text-center border-b-2 font-medium text-sm" data-tab="restore">
+                        Restore Keys
+                    </button>
+                </nav>
+            </div>
+        </div>
+
+        <!-- Generate Tab -->
+        <div id="generateTab" class="tab-content active max-w-2xl mx-auto">
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <form id="generateForm">
+                    <div class="mb-6">
+                        <h2 class="text-xl font-semibold mb-4">Generate New Keys</h2>
+                        
+                        <div class="mb-4">
+                            <label class="block text-gray-700 text-sm font-bold mb-2">Seed Type</label>
+                            <div class="flex space-x-4">
+                                <label class="inline-flex items-center">
+                                    <input type="radio" name="action" value="new" class="form-radio" checked>
+                                    <span class="ml-2">Generate New Seed</span>
+                                </label>
+                                <label class="inline-flex items-center">
+                                    <input type="radio" name="action" value="existing" class="form-radio">
+                                    <span class="ml-2">Use Existing Seed</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div id="newSeedOptions" class="mb-4">
+                            <label class="block text-gray-700 text-sm font-bold mb-2">Seed Length</label>
+                            <div class="flex space-x-4">
+                                <label class="inline-flex items-center">
+                                    <input type="radio" name="wordCount" value="12" class="form-radio" checked>
+                                    <span class="ml-2">12 Words (128 bits)</span>
+                                </label>
+                                <label class="inline-flex items-center">
+                                    <input type="radio" name="wordCount" value="24" class="form-radio">
+                                    <span class="ml-2">24 Words (256 bits)</span>
+                                </label>
+                            </div>
+                            <p class="mt-1 text-sm text-gray-500">
+                                12 words provide 128 bits of entropy, while 24 words provide 256 bits. 
+                                24 words offer higher security but are longer to write down.
+                            </p>
+                        </div>
+
+                        <div id="existingSeedSection" class="mb-4 hidden">
+                            <label class="block text-gray-700 text-sm font-bold mb-2">Existing Seed Phrase</label>
+                            <textarea id="mnemonic" 
+                                class="w-full px-3 py-2 border rounded-lg"
+                                rows="3"
+                                placeholder="Enter your 12 or 24-word seed phrase"></textarea>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="block text-gray-700 text-sm font-bold mb-2">Number of Key Pairs</label>
+                            <input type="number" id="count" value="1" min="1" max="10" 
+                                class="w-full px-3 py-2 border rounded-lg">
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="block text-gray-700 text-sm font-bold mb-2">Passphrase (Optional)</label>
+                            <input type="password" id="passphrase" 
+                                class="w-full px-3 py-2 border rounded-lg">
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="block text-gray-700 text-sm font-bold mb-2">Output Directory (Optional)</label>
+                            <input type="text" id="outputDir" 
+                                class="w-full px-3 py-2 border rounded-lg"
+                                placeholder="Default: src/generated-keys">
+                            <div class="mt-1 text-sm text-gray-500 space-y-1">
+                                <p>Default location: <code class="bg-gray-100 px-1 py-0.5 rounded">src/generated-keys</code></p>
+                                <p>To specify a custom location, enter a path relative to the project folder:</p>
+                                <ul class="list-disc list-inside ml-4">
+                                    <li>Use forward slashes (/) or backslashes (\\)</li>
+                                    <li>Examples: <code class="bg-gray-100 px-1 py-0.5 rounded">my-keys</code> or <code class="bg-gray-100 px-1 py-0.5 rounded">keys/backup</code></li>
+                                    <li>Path must be within the project folder</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <button type="submit" 
+                            class="w-full bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 transition-colors">
+                            Generate Keys
+                        </button>
+                    </div>
+                </form>
+
+                <div id="loadingIndicator" class="hidden text-center py-4">
+                    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
+                    <p class="mt-2 text-gray-600">Generating keys...</p>
+                </div>
+
+                <div id="generationResult" class="space-y-6">
+                    <div id="mnemonicDisplay" class="hidden">
+                        <div class="p-4 bg-yellow-50 rounded-lg">
+                            <h3 class="text-xl font-semibold mb-4">Generated Seed Phrase</h3>
+                            <div class="bg-red-50 border-l-4 border-red-500 p-4 mb-4">
+                                <div class="flex">
+                                    <div class="flex-shrink-0">
+                                        <svg class="h-5 w-5 text-red-500" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                                        </svg>
+                                    </div>
+                                    <div class="ml-3">
+                                        <p class="text-sm text-red-700">
+                                            <strong class="font-bold">IMPORTANT:</strong> This seed phrase will only be displayed once. 
+                                            Please write it down and store it securely. If you lose this seed phrase, 
+                                            you will permanently lose access to all keys generated from it.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="bg-white border rounded-lg p-4">
+                                <pre id="mnemonicText" class="font-mono text-sm whitespace-pre-wrap break-words"></pre>
+                            </div>
+                            <button id="copyMnemonicBtn" class="mt-3 flex items-center text-blue-500 hover:text-blue-700">
+                                <svg class="h-5 w-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/>
+                                </svg>
+                                Copy Seed Phrase
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="result" class="hidden">
+                        <h3 class="text-xl font-semibold mb-4">Generated Keys</h3>
+                        <div id="resultContent" class="space-y-4"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Test Tab -->
+        <div id="testTab" class="tab-content hidden max-w-2xl mx-auto">
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h2 class="text-xl font-semibold mb-4">Test SSH Key Pair</h2>
+                <p class="text-gray-600 mb-4">Test any SSH key pair by pasting the contents of your public and private key files.</p>
+                
+                <div class="space-y-4">
+                    <div>
+                        <label for="testPublicKeyInput" class="block text-sm font-medium text-gray-700">Public Key</label>
+                        <textarea id="testPublicKeyInput" rows="3" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" placeholder="Paste your public key here (ssh-ed25519 ...)"></textarea>
+                    </div>
+                    
+                    <div>
+                        <label for="testPrivateKeyInput" class="block text-sm font-medium text-gray-700">Private Key</label>
+                        <textarea id="testPrivateKeyInput" rows="6" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" placeholder="Paste your private key here (-----BEGIN OPENSSH PRIVATE KEY----- ...)"></textarea>
+                    </div>
+                    
+                    <button id="standaloneTestBtn" class="w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                        Test Key Pair
+                    </button>
+                    
+                    <div id="standaloneTestResult" class="hidden mt-4"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Restore Tab -->
+        <div id="restoreTab" class="tab-content hidden max-w-2xl mx-auto">
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h2 class="text-xl font-semibold mb-4">Restore Keys from Seed</h2>
+                <form id="restoreForm">
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-gray-700 text-sm font-bold mb-2">Seed Phrase</label>
+                            <textarea id="restoreMnemonic" 
+                                class="w-full px-3 py-2 border rounded-lg"
+                                rows="3"
+                                placeholder="Enter your 12 or 24-word seed phrase"></textarea>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label class="block text-gray-700 text-sm font-bold mb-2">Derivation Paths (one per line)</label>
+                            <textarea id="restoreDerivationPaths" 
+                                class="w-full px-3 py-2 border rounded-lg h-24"
+                                placeholder="m/44'/0'/0'/0/0&#10;m/44'/0'/0'/0/1&#10;m/44'/0'/0'/0/2"></textarea>
+                            <p class="text-sm text-gray-600 mt-1">Enter each derivation path on a new line</p>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="block text-gray-700 text-sm font-bold mb-2">Passphrase (Optional)</label>
+                            <input type="password" id="restorePassphrase" 
+                                class="w-full px-3 py-2 border rounded-lg"
+                                placeholder="Enter passphrase if used">
+                        </div>
+
+                        <div>
+                            <label class="block text-gray-700 text-sm font-bold mb-2">Output Directory (Optional)</label>
+                            <input type="text" id="restoreOutputDir" 
+                                class="w-full px-3 py-2 border rounded-lg"
+                                placeholder="Default: src/restored-keys">
+                            <div class="mt-1 text-sm text-gray-500 space-y-1">
+                                <p>Default location: <code class="bg-gray-100 px-1 py-0.5 rounded">src/restored-keys</code></p>
+                                <p>To specify a custom location, enter a path relative to the project folder</p>
+                            </div>
+                        </div>
+
+                        <button type="submit" 
+                            class="w-full bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 transition-colors">
+                            Restore Keys
+                        </button>
+                    </div>
+                </form>
+
+                <div id="restoreLoadingIndicator" class="hidden text-center py-4">
+                    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
+                    <p class="mt-2 text-gray-600">Restoring keys...</p>
+                </div>
+
+                <div id="restoreResult" class="hidden">
+                    <h3 class="text-xl font-semibold mb-4">Restored Keys</h3>
+                    <div id="restoreResultContent" class="space-y-4"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Key Testing Modal -->
+    <div id="keyTestModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
+        <div class="bg-white rounded-lg p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-semibold">Test SSH Key Pair</h3>
+                <button id="closeTestModal" class="text-gray-500 hover:text-gray-700">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            
+            <div class="mb-4">
+                <h4 class="font-semibold mb-2">Private Key</h4>
+                <div class="p-3 bg-gray-100 rounded-lg font-mono text-sm overflow-x-auto">
+                    <pre id="testPrivateKey" class="whitespace-pre-wrap"></pre>
+                </div>
+            </div>
+            
+            <div class="mb-4">
+                <h4 class="font-semibold mb-2">Public Key</h4>
+                <div class="p-3 bg-gray-100 rounded-lg font-mono text-sm overflow-x-auto">
+                    <pre id="testPublicKey" class="whitespace-pre-wrap"></pre>
+                </div>
+            </div>
+            
+            <div class="mb-4">
+                <button id="testKeyPairBtn" class="w-full bg-green-500 text-white py-2 px-4 rounded-lg hover:bg-green-600 transition-colors">
+                    Test Key Pair
+                </button>
+            </div>
+            
+            <div id="testResult" class="hidden">
+                <h4 class="font-semibold mb-2">Test Result</h4>
+                <div id="testResultContent" class="p-4 rounded-lg"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const actionRadios = document.querySelectorAll('input[name="action"]');
+            const existingSeedSection = document.getElementById('existingSeedSection');
+            const restoreSection = document.getElementById('restoreSection');
+            const generateForm = document.getElementById('generateForm');
+            const loadingIndicator = document.getElementById('loadingIndicator');
+            const resultSection = document.getElementById('result');
+            const resultContent = document.getElementById('resultContent');
+            const mnemonicDisplay = document.getElementById('mnemonicDisplay');
+            const mnemonicText = document.getElementById('mnemonicText');
+            const outputDir = document.getElementById('outputDir');
+            
+            // Key testing modal elements
+            const keyTestModal = document.getElementById('keyTestModal');
+            const closeTestModal = document.getElementById('closeTestModal');
+            const testPrivateKey = document.getElementById('testPrivateKey');
+            const testPublicKey = document.getElementById('testPublicKey');
+            const testKeyPairBtn = document.getElementById('testKeyPairBtn');
+            const testResult = document.getElementById('testResult');
+            const testResultContent = document.getElementById('testResultContent');
+            
+            // Initialize the SSH test server
+            const sshTestServer = new SSHTestServer();
+            
+            // Add input validation for the output directory
+            outputDir.addEventListener('input', () => {
+                const value = outputDir.value.trim();
+                if (value && !/^[a-zA-Z0-9-_/\\]+$/.test(value)) {
+                    outputDir.classList.add('border-red-500');
+                } else {
+                    outputDir.classList.remove('border-red-500');
+                }
+            });
+
+            // Toggle sections based on selected action
+            actionRadios.forEach(radio => {
+                radio.addEventListener('change', () => {
+                    if (radio.value === 'existing') {
+                        existingSeedSection.classList.remove('hidden');
+                        restoreSection.classList.add('hidden');
+                        document.getElementById('newSeedOptions').classList.add('hidden');
+                    } else if (radio.value === 'restore') {
+                        existingSeedSection.classList.add('hidden');
+                        restoreSection.classList.remove('hidden');
+                        document.getElementById('newSeedOptions').classList.add('hidden');
+                    } else {
+                        existingSeedSection.classList.add('hidden');
+                        restoreSection.classList.add('hidden');
+                        document.getElementById('newSeedOptions').classList.remove('hidden');
+                    }
+                });
+            });
+
+            // Handle form submission
+            generateForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                // Show loading indicator
+                loadingIndicator.classList.remove('hidden');
+                resultSection.classList.add('hidden');
+                mnemonicDisplay.classList.add('hidden');
+                
+                const selectedAction = document.querySelector('input[name="action"]:checked')?.value;
+                const requestData = {};
+                
+                if (selectedAction === 'new') {
+                    requestData.action = 'new';
+                    requestData.count = document.getElementById('count').value;
+                    requestData.passphrase = document.getElementById('passphrase').value;
+                    requestData.outputDir = document.getElementById('outputDir').value;
+                    requestData.wordCount = document.querySelector('input[name="wordCount"]:checked').value;
+                } else if (selectedAction === 'existing') {
+                    requestData.action = 'existing';
+                    requestData.mnemonic = document.getElementById('mnemonic').value;
+                    requestData.count = document.getElementById('count').value;
+                    requestData.passphrase = document.getElementById('passphrase').value;
+                    requestData.outputDir = document.getElementById('outputDir').value;
+                }
+                
+                try {
+                    const response = await fetch('/generate', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(requestData)
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        // Format the result
+                        resultContent.innerHTML = `
+                            <div class="mb-6 p-4 bg-gray-50 rounded-lg">
+                                <p class="text-gray-700"><strong>Output Directory:</strong> ${data.baseDir}</p>
+                                <p class="text-gray-700 mt-2"><strong>Passphrase Protection:</strong> ${requestData.passphrase ? 'Yes' : 'No'}</p>
+                                <p class="text-gray-700 mt-2"><strong>Number of Keys:</strong> ${Array.isArray(data.keys) ? data.keys.length : 0}</p>
+                            </div>
+                            <div class="space-y-4">
+                                ${Array.isArray(data.keys) ? data.keys.map((key, index) => `
+                                    <div class="p-4 bg-white border rounded-lg">
+                                        <h3 class="text-lg font-bold mb-2">Key Pair ${index + 1}</h3>
+                                        <div class="space-y-1 mb-4">
+                                            <p><strong>Location:</strong> key-${index + 1}/</p>
+                                            <p><strong>Files:</strong> id_ed25519, id_ed25519.pub, derivation.txt</p>
+                                            <p><strong>Derivation Path:</strong> ${key.derivationPath}</p>
+                                        </div>
+                                        <button class="bg-green-500 text-white py-2 px-4 rounded-lg hover:bg-green-600 transition-colors test-key-btn" 
+                                            data-private="${key.privateKeyPath}" 
+                                            data-public="${key.publicKeyPath}">
+                                            Test Key Pair
+                                        </button>
+                                    </div>
+                                `).join('') : '<p class="text-red-500">No keys were generated</p>'}
+                            </div>
+                        `;
+                        
+                        // Show mnemonic if it was generated (for new seeds only)
+                        if (data.mnemonic) {
+                            mnemonicText.textContent = data.mnemonic;
+                            mnemonicDisplay.classList.remove('hidden');
+                        }
+                        
+                        // Show the result section
+                        resultSection.classList.remove('hidden');
+                        
+                        // Add event listeners to test buttons
+                        document.querySelectorAll('.test-key-btn').forEach(btn => {
+                            btn.addEventListener('click', () => {
+                                testPrivateKey.value = btn.dataset.private;
+                                testPublicKey.value = btn.dataset.public;
+                                keyTestModal.classList.remove('hidden');
+                            });
+                        });
+                    } else {
+                        resultContent.innerHTML = `
+                            <div class="p-4 bg-red-50 text-red-700 rounded-lg">
+                                <p><strong>Error:</strong> ${data.error}</p>
+                            </div>
+                        `;
+                        resultSection.classList.remove('hidden');
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    resultContent.innerHTML = `
+                        <div class="p-4 bg-red-50 text-red-700 rounded-lg">
+                            <p><strong>Error:</strong> ${error.message || 'An unknown error occurred'}</p>
+                        </div>
+                    `;
+                    resultSection.classList.remove('hidden');
+                } finally {
+                    loadingIndicator.classList.add('hidden');
+                }
+            });
+            
+            // Handle restore form submission
+            const restoreForm = document.getElementById('restoreForm');
+            const restoreLoadingIndicator = document.getElementById('restoreLoadingIndicator');
+            const restoreResult = document.getElementById('restoreResult');
+            const restoreResultContent = document.getElementById('restoreResultContent');
+
+            restoreForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                // Show loading indicator
+                restoreLoadingIndicator.classList.remove('hidden');
+                restoreResult.classList.add('hidden');
+                
+                const requestData = {
+                    mnemonic: document.getElementById('restoreMnemonic').value,
+                    derivationPaths: document.getElementById('restoreDerivationPaths').value
+                        .split('\n')
+                        .map(path => path.trim())
+                        .filter(path => path),
+                    passphrase: document.getElementById('restorePassphrase').value,
+                    outputDir: document.getElementById('restoreOutputDir').value
+                };
+                
+                try {
+                    const response = await fetch('/restore', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(requestData)
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        // Format the result
+                        restoreResultContent.innerHTML = `
+                            <div class="mb-6 p-4 bg-gray-50 rounded-lg">
+                                <p class="text-gray-700"><strong>Output Directory:</strong> ${data.baseDir}</p>
+                                <p class="text-gray-700 mt-2"><strong>Passphrase Protection:</strong> ${requestData.passphrase ? 'Yes' : 'No'}</p>
+                                <p class="text-gray-700 mt-2"><strong>Number of Keys:</strong> ${Array.isArray(data.keys) ? data.keys.length : 0}</p>
+                            </div>
+                            <div class="space-y-4">
+                                ${Array.isArray(data.keys) ? data.keys.map((key, index) => `
+                                    <div class="p-4 bg-white border rounded-lg">
+                                        <h3 class="text-lg font-bold mb-2">Key Pair ${index + 1}</h3>
+                                        <div class="space-y-1 mb-4">
+                                            <p><strong>Location:</strong> key-${index + 1}/</p>
+                                            <p><strong>Files:</strong> id_ed25519, id_ed25519.pub, derivation.txt</p>
+                                            <p><strong>Derivation Path:</strong> ${key.derivationPath}</p>
+                                        </div>
+                                    </div>
+                                `).join('') : '<p class="text-red-500">No keys were restored</p>'}
+                            </div>
+                        `;
+                        
+                        // Show the result section
+                        restoreResult.classList.remove('hidden');
+                    } else {
+                        restoreResultContent.innerHTML = `
+                            <div class="p-4 bg-red-50 text-red-700 rounded-lg">
+                                <p><strong>Error:</strong> ${data.error}</p>
+                            </div>
+                        `;
+                        restoreResult.classList.remove('hidden');
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    restoreResultContent.innerHTML = `
+                        <div class="p-4 bg-red-50 text-red-700 rounded-lg">
+                            <p><strong>Error:</strong> ${error.message || 'An unknown error occurred'}</p>
+                        </div>
+                    `;
+                    restoreResult.classList.remove('hidden');
+                } finally {
+                    restoreLoadingIndicator.classList.add('hidden');
+                }
+            });
+            
+            // Copy mnemonic to clipboard
+            const copyMnemonicBtn = document.getElementById('copyMnemonicBtn');
+            copyMnemonicBtn.addEventListener('click', async () => {
+                const mnemonic = mnemonicText.textContent;
+                try {
+                    await navigator.clipboard.writeText(mnemonic);
+                    copyMnemonicBtn.textContent = 'Copied!';
+                    setTimeout(() => {
+                        copyMnemonicBtn.textContent = 'Copy to Clipboard';
+                    }, 2000);
+                } catch (err) {
+                    console.error('Failed to copy: ', err);
+                    copyMnemonicBtn.textContent = 'Failed to copy';
+                    setTimeout(() => {
+                        copyMnemonicBtn.textContent = 'Copy to Clipboard';
+                    }, 2000);
+                }
+            });
+            
+            // Close the key testing modal
+            closeTestModal.addEventListener('click', () => {
+                keyTestModal.classList.add('hidden');
+            });
+            
+            // Test the key pair
+            testKeyPairBtn.addEventListener('click', async () => {
+                const privateKey = testPrivateKey.value;
+                const publicKey = testPublicKey.value;
+                
+                try {
+                    // Show loading state
+                    testKeyPairBtn.disabled = true;
+                    testKeyPairBtn.textContent = 'Testing...';
+                    
+                    // Call the async testKeyPair function and await its result
+                    const result = await sshTestServer.testKeyPair(publicKey, privateKey);
+                    testResult.classList.remove('hidden');
+                    
+                    if (result.success) {
+                        testResultContent.innerHTML = `
+                            <div class="p-4 bg-green-100 text-green-700 rounded-lg">
+                                <p class="font-bold">✓ Key pair verification successful!</p>
+                                <p class="mt-2">The private and public keys are a valid pair.</p>
+                                <p class="mt-2">Fingerprint: ${result.fingerprint}</p>
+                            </div>
+                        `;
+                    } else {
+                        testResultContent.innerHTML = `
+                            <div class="p-4 bg-red-100 text-red-700 rounded-lg">
+                                <p class="font-bold">✗ Key pair verification failed!</p>
+                                <p class="mt-2">The private and public keys do not form a valid pair.</p>
+                                <p class="mt-2">Error: ${result.error || 'Unknown error'}</p>
+                            </div>
+                        `;
+                    }
+                } catch (error) {
+                    console.error('Error testing key pair:', error);
+                    testResult.classList.remove('hidden');
+                    testResultContent.innerHTML = `
+                        <div class="p-4 bg-red-100 text-red-700 rounded-lg">
+                            <p class="font-bold">✗ Error testing key pair!</p>
+                            <p class="mt-2">${error.message || 'Unknown error'}</p>
+                        </div>
+                    `;
+                } finally {
+                    // Reset button state
+                    testKeyPairBtn.disabled = false;
+                    testKeyPairBtn.textContent = 'Test Key Pair';
+                }
+            });
+
+            // Add standalone test functionality
+            const standaloneTestBtn = document.getElementById('standaloneTestBtn');
+            const standaloneTestResult = document.getElementById('standaloneTestResult');
+            
+            standaloneTestBtn.addEventListener('click', async () => {
+                const publicKey = document.getElementById('testPublicKeyInput').value.trim();
+                const privateKey = document.getElementById('testPrivateKeyInput').value.trim();
+                
+                if (!publicKey || !privateKey) {
+                    standaloneTestResult.innerHTML = `
+                        <div class="p-4 bg-red-100 text-red-700 rounded-lg">
+                            <p class="font-bold">✗ Error!</p>
+                            <p class="mt-2">Please provide both public and private keys.</p>
+                        </div>
+                    `;
+                    standaloneTestResult.classList.remove('hidden');
+                    return;
+                }
+                
+                try {
+                    // Show loading state
+                    standaloneTestBtn.disabled = true;
+                    standaloneTestBtn.textContent = 'Testing...';
+                    
+                    // Test the key pair
+                    const result = await sshTestServer.testKeyPair(publicKey, privateKey);
+                    standaloneTestResult.classList.remove('hidden');
+                    
+                    if (result.success) {
+                        standaloneTestResult.innerHTML = `
+                            <div class="p-4 bg-green-100 text-green-700 rounded-lg">
+                                <p class="font-bold">✓ Key pair verification successful!</p>
+                                <p class="mt-2">The private and public keys are a valid pair.</p>
+                                <p class="mt-2">Fingerprint: ${result.fingerprint}</p>
+                            </div>
+                        `;
+                    } else {
+                        standaloneTestResult.innerHTML = `
+                            <div class="p-4 bg-red-100 text-red-700 rounded-lg">
+                                <p class="font-bold">✗ Key pair verification failed!</p>
+                                <p class="mt-2">The private and public keys do not form a valid pair.</p>
+                                <p class="mt-2">Error: ${result.error || 'Unknown error'}</p>
+                            </div>
+                        `;
+                    }
+                } catch (error) {
+                    console.error('Error testing key pair:', error);
+                    standaloneTestResult.classList.remove('hidden');
+                    standaloneTestResult.innerHTML = `
+                        <div class="p-4 bg-red-100 text-red-700 rounded-lg">
+                            <p class="font-bold">✗ Error testing key pair!</p>
+                            <p class="mt-2">${error.message || 'Unknown error'}</p>
+                        </div>
+                    `;
+                } finally {
+                    // Reset button state
+                    standaloneTestBtn.disabled = false;
+                    standaloneTestBtn.textContent = 'Test Key Pair';
+                }
+            });
+
+            // Tab functionality
+            const tabBtns = document.querySelectorAll('.tab-btn');
+            const tabContents = document.querySelectorAll('.tab-content');
+
+            tabBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    // Remove active class from all buttons and contents
+                    tabBtns.forEach(b => b.classList.remove('active'));
+                    tabContents.forEach(c => c.classList.remove('active'));
+
+                    // Add active class to clicked button and corresponding content
+                    btn.classList.add('active');
+                    document.getElementById(`${btn.dataset.tab}Tab`).classList.add('active');
+
+                    // Clear any existing results when switching tabs
+                    document.getElementById('result').classList.add('hidden');
+                    document.getElementById('mnemonicDisplay').classList.add('hidden');
+                    document.getElementById('mnemonicText').textContent = '';
+                    document.getElementById('standaloneTestResult').classList.add('hidden');
+                });
+            });
+        });
+    </script>
+</body>
+</html> 
