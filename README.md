@@ -1,6 +1,6 @@
 # BIP39 to SSH Key Generator
 
-A secure and user-friendly tool for generating and managing SSH keys from BIP39 seed phrases. This application allows you to generate new seed phrases or use existing ones to create Ed25519 SSH key pairs, with support for multiple derivation paths and optional passphrase protection.
+A secure and user-friendly web application for generating and managing SSH keys from BIP39 seed phrases. This application provides a clean web interface that allows you to generate new seed phrases or use existing ones to create Ed25519 SSH key pairs, with support for multiple derivation paths and optional passphrase protection.
 
 ## Prerequisites
 
