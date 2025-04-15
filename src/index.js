@@ -2,6 +2,7 @@ const seedManager = require('./seed');
 const keyDeriver = require('./keyDeriver');
 const fs = require('fs');
 const path = require('path');
+const express = require('express');
 
 class BIP39toSSH {
     /**
@@ -129,3 +130,23 @@ class BIP39toSSH {
 
 // Export a function to create a new instance
 module.exports = (options) => new BIP39toSSH(options);
+
+// Add route to read key files
+const app = express();
+app.get('/read-key', (req, res) => {
+    try {
+        const keyPath = req.query.path;
+        
+        // Basic security check to prevent directory traversal
+        if (!keyPath || keyPath.includes('..')) {
+            return res.status(400).json({ error: 'Invalid key path' });
+        }
+        
+        // Read the key file
+        const keyContent = fs.readFileSync(keyPath, 'utf8');
+        res.send(keyContent);
+    } catch (error) {
+        console.error('Error reading key file:', error);
+        res.status(500).json({ error: 'Failed to read key file' });
+    }
+});

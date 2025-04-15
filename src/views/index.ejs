@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,6 +7,95 @@
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <script src="/js/ssh-test-server.js"></script>
     <style>
+        :root[data-theme="light"] {
+            --bg-color: #ffffff;
+            --text-color: #333333;
+            --primary-color: #4a90e2;
+            --secondary-color: #f5f5f5;
+            --border-color: #dddddd;
+            --warning-bg: #fff3cd;
+            --warning-text: #856404;
+            --success-bg: #d4edda;
+            --success-text: #155724;
+            --error-bg: #f8d7da;
+            --error-text: #721c24;
+            --input-bg: #ffffff;
+            --input-border: #cccccc;
+            --button-hover: #357abd;
+            --container-bg: #ffffff;
+            --code-bg: #f5f5f5;
+            --tab-active-bg: #4a90e2;
+            --tab-active-text: #ffffff;
+            --tab-hover-bg: #e5e7eb;
+            --modal-bg: #ffffff;
+            --modal-text: #333333;
+            --seed-bg: #ffffff;
+            --seed-border: #e5e7eb;
+            --seed-warning-bg: #fff3cd;
+            --seed-warning-border: #ffeeba;
+            --seed-warning-text: #856404;
+            --seed-text: #333333;
+            --seed-mono-bg: #f8f9fa;
+            --test-modal-bg: #ffffff;
+            --test-input-bg: #f5f5f5;
+            --error-border: #f5c2c7;
+            --success-border: #badbcc;
+        }
+
+        :root[data-theme="dark"] {
+            --bg-color: #1a1a1a;
+            --text-color: #ffffff;
+            --primary-color: #4a90e2;
+            --secondary-color: #2d2d2d;
+            --border-color: #404040;
+            --warning-bg: #332b00;
+            --warning-text: #ffd700;
+            --success-bg: #1e4620;
+            --success-text: #90ee90;
+            --error-bg: #3c1215;
+            --error-text: #ff6b6b;
+            --input-bg: #2d2d2d;
+            --input-border: #404040;
+            --button-hover: #357abd;
+            --container-bg: #2d2d2d;
+            --code-bg: #363636;
+            --tab-active-bg: #4a90e2;
+            --tab-active-text: #ffffff;
+            --tab-hover-bg: #363636;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--primary-color);
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
+            transition: background-color 0.3s;
+        }
+
+        .theme-toggle:hover {
+            background-color: var(--button-hover);
+        }
+
         .loading {
             display: none;
         }
@@ -26,10 +115,20 @@
             display: block;
         }
         .tab-btn {
-            @apply text-gray-500 hover:text-gray-700 hover:border-gray-300 border-transparent;
+            color: var(--text-color) !important;
+            opacity: 0.7;
+            border-color: transparent;
+            transition: all 0.3s;
+        }
+        .tab-btn:hover {
+            background-color: var(--tab-hover-bg);
+            opacity: 0.9;
         }
         .tab-btn.active {
-            @apply border-blue-500 text-blue-600;
+            background-color: var(--tab-active-bg);
+            color: var(--tab-active-text) !important;
+            opacity: 1;
+            border-color: var(--primary-color);
         }
         .tab-content {
             display: none;
@@ -37,9 +136,498 @@
         .tab-content.active {
             display: block;
         }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: var(--secondary-color);
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        .bg-white {
+            background-color: var(--container-bg) !important;
+        }
+
+        .text-gray-700 {
+            color: var(--text-color) !important;
+        }
+
+        .text-gray-600 {
+            color: var(--text-color) !important;
+            opacity: 0.8;
+        }
+
+        .text-gray-500 {
+            color: var(--text-color) !important;
+            opacity: 0.7;
+        }
+
+        .border-gray-200 {
+            border-color: var(--border-color) !important;
+        }
+
+        .bg-gray-50 {
+            background-color: var(--secondary-color) !important;
+        }
+
+        .bg-gray-100 {
+            background-color: var(--code-bg) !important;
+        }
+
+        code {
+            background-color: var(--code-bg) !important;
+            color: var(--text-color) !important;
+        }
+
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            background-color: var(--secondary-color);
+            border: 1px solid var(--border-color);
+            border-bottom: none;
+            margin-right: 5px;
+            border-radius: 5px 5px 0 0;
+        }
+
+        .tab.active {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .tab-content {
+            display: none;
+            padding: 20px;
+            background-color: var(--secondary-color);
+            border: 1px solid var(--border-color);
+            border-top: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        input[type="text"],
+        input[type="password"],
+        input[type="number"],
+        textarea {
+            background-color: var(--input-bg) !important;
+            color: var(--text-color) !important;
+            border-color: var(--input-border) !important;
+        }
+
+        input[type="radio"] {
+            accent-color: var(--primary-color);
+        }
+
+        .shadow-md {
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3) !important;
+        }
+
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: var(--button-hover);
+        }
+
+        .warning {
+            background-color: var(--warning-bg);
+            color: var(--warning-text);
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+
+        .success {
+            background-color: var(--success-bg);
+            color: var(--success-text);
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+
+        .error {
+            background-color: var(--error-bg);
+            color: var(--error-text);
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+
+        /* Test Keys Page Specific Styles */
+        #testTab .bg-white {
+            background-color: var(--container-bg) !important;
+            border: 1px solid var(--border-color);
+        }
+
+        #testTab textarea {
+            background-color: var(--input-bg) !important;
+            color: var(--text-color) !important;
+            border: 1px solid var(--border-color) !important;
+            border-radius: 6px;
+            padding: 12px;
+            font-family: 'Courier New', monospace;
+            width: 100%;
+            margin-top: 8px;
+            transition: border-color 0.3s;
+        }
+
+        #testTab textarea:focus {
+            border-color: var(--primary-color) !important;
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
+        }
+
+        #testTab textarea::placeholder {
+            color: var(--text-color);
+            opacity: 0.5;
+        }
+
+        #testTab label {
+            color: var(--text-color) !important;
+            font-weight: 600;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        #testTab .space-y-4 > * + * {
+            margin-top: 1.5rem;
+        }
+
+        #testTab .font-medium {
+            color: var(--text-color) !important;
+        }
+
+        #testTab .text-gray-700,
+        #testTab .text-gray-600 {
+            color: var(--text-color) !important;
+            opacity: 0.9;
+        }
+
+        #testTab .rounded-md {
+            border-radius: 6px;
+        }
+
+        #testTab .shadow-sm {
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+        }
+
+        #testTab .focus\:ring-blue-500:focus {
+            box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
+        }
+
+        #testTab .border-gray-300 {
+            border-color: var(--border-color) !important;
+        }
+
+        /* Test Button Styling */
+        #standaloneTestBtn {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 6px;
+            width: 100%;
+            font-weight: 600;
+            transition: background-color 0.3s;
+            margin-top: 1.5rem;
+        }
+
+        #standaloneTestBtn:hover {
+            background-color: var(--button-hover);
+        }
+
+        #standaloneTestBtn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+        /* Test Result Styling */
+        #standaloneTestResult {
+            margin-top: 1.5rem;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        #standaloneTestResult .bg-red-100,
+        #standaloneTestResult .bg-green-100 {
+            padding: 1rem;
+            border-radius: 6px;
+        }
+
+        /* Container Styling */
+        #testTab .p-6 {
+            padding: 1.5rem;
+        }
+
+        #testTab .rounded-lg {
+            border-radius: 8px;
+        }
+
+        #testTab .shadow-md {
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Section Title */
+        #testTab .text-xl {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: var(--text-color);
+        }
+
+        /* Description Text */
+        #testTab .mb-4 {
+            margin-bottom: 1.5rem;
+        }
+
+        /* Seed Phrase Section Styling */
+        #mnemonicDisplay {
+            background-color: var(--container-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        #mnemonicDisplay .bg-yellow-50 {
+            background-color: var(--container-bg);
+            border-radius: 6px;
+            padding: 1rem;
+        }
+
+        #mnemonicDisplay .bg-red-50 {
+            background-color: var(--warning-bg);
+            border: 1px solid var(--warning-border);
+            color: var(--warning-text);
+            border-radius: 6px;
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+
+        #mnemonicDisplay .text-red-700 {
+            color: var(--warning-text) !important;
+        }
+
+        #mnemonicDisplay .border-red-500 {
+            border-color: var(--warning-border);
+        }
+
+        #mnemonicText {
+            font-family: 'Courier New', monospace;
+            padding: 1rem;
+            background-color: var(--seed-mono-bg);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            margin: 1rem 0;
+            font-size: 1.1rem;
+            line-height: 1.6;
+            word-spacing: 0.5rem;
+        }
+
+        /* Copy Button Styling */
+        #copyMnemonicBtn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background-color: var(--primary-color);
+            color: white;
+            padding: 0.75rem 1rem;
+            border-radius: 6px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            margin-top: 1rem;
+        }
+
+        #copyMnemonicBtn:hover {
+            background-color: var(--button-hover);
+            transform: translateY(-1px);
+        }
+
+        #copyMnemonicBtn:active {
+            transform: translateY(0);
+        }
+
+        #copyMnemonicBtn svg {
+            width: 1.25rem;
+            height: 1.25rem;
+            transition: transform 0.3s ease;
+        }
+
+        #copyMnemonicBtn:hover svg {
+            transform: translateY(-1px);
+        }
+
+        /* Warning Icon Styling */
+        #mnemonicDisplay .text-red-500 {
+            color: var(--warning-text);
+        }
+
+        #mnemonicDisplay h3 {
+            color: var(--text-color);
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        #mnemonicDisplay .font-bold {
+            color: var(--warning-text);
+        }
+
+        /* Container Background Fix */
+        .bg-white {
+            background-color: var(--container-bg) !important;
+        }
+
+        /* Warning Box Styling */
+        .flex-shrink-0 svg {
+            color: var(--warning-text);
+        }
+
+        .ml-3 {
+            margin-left: 0.75rem;
+        }
+
+        /* Dark mode specific styles */
+        :root[data-theme="dark"] #keyTestModal .bg-white {
+            background-color: var(--container-bg);
+            color: var(--text-color);
+        }
+
+        :root[data-theme="dark"] #keyTestModal textarea {
+            background-color: var(--input-bg);
+            color: var(--text-color);
+            border-color: var(--border-color);
+        }
+
+        :root[data-theme="dark"] #keyTestModal textarea:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
+        }
+
+        :root[data-theme="dark"] #keyTestModal h3,
+        :root[data-theme="dark"] #keyTestModal h4 {
+            color: var(--text-color);
+        }
+
+        /* Textarea styling */
+        #modalPrivateKey,
+        #modalPublicKey {
+            resize: none;
+            font-family: 'Courier New', monospace;
+            line-height: 1.4;
+            letter-spacing: 0.5px;
+        }
+
+        /* Custom scrollbar for dark mode */
+        :root[data-theme="dark"] #keyTestModal textarea::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        :root[data-theme="dark"] #keyTestModal textarea::-webkit-scrollbar-track {
+            background: var(--secondary-color);
+            border-radius: 4px;
+        }
+
+        :root[data-theme="dark"] #keyTestModal textarea::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 4px;
+        }
+
+        :root[data-theme="dark"] #keyTestModal textarea::-webkit-scrollbar-thumb:hover {
+            background: var(--primary-color);
+        }
+
+        /* Modal backdrop */
+        :root[data-theme="dark"] #keyTestModal {
+            backdrop-filter: blur(4px);
+        }
+
+        /* Test button hover effect */
+        :root[data-theme="dark"] #modalTestKeyPairBtn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+        }
+
+        :root[data-theme="dark"] #modalTestKeyPairBtn:active {
+            transform: translateY(0);
+        }
+
+        /* Key Testing Modal */
+        #keyTestModal {
+            position: fixed;
+            inset: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            padding: 1rem;
+            overflow-y: auto;
+        }
+
+        #keyTestModal.hidden {
+            display: none !important;
+        }
+
+        #keyTestModal .bg-white {
+            margin: 2rem auto;
+            width: 100%;
+            max-width: 42rem;
+            max-height: calc(100vh - 4rem);
+            display: flex;
+            flex-direction: column;
+        }
+
+        #keyTestModal .modal-content {
+            overflow-y: auto;
+            padding: 1.5rem;
+            flex: 1;
+        }
+
+        #keyTestModal .modal-header {
+            position: sticky;
+            top: 0;
+            background: inherit;
+            padding: 1.5rem 1.5rem 0.5rem;
+            z-index: 10;
+        }
+
+        #keyTestModal .modal-footer {
+            position: sticky;
+            bottom: 0;
+            background: inherit;
+            padding: 0.5rem 1.5rem 1.5rem;
+            z-index: 10;
+        }
+
+        #keyTestModal textarea {
+            resize: none;
+            font-family: 'Courier New', monospace;
+            line-height: 1.4;
+            letter-spacing: 0.5px;
+            width: 100%;
+        }
     </style>
 </head>
 <body class="bg-gray-100 min-h-screen">
+    <button class="theme-toggle" onclick="toggleTheme()" title="Toggle theme">🌓</button>
     <div class="container mx-auto px-4 py-8">
         <h1 class="text-3xl font-bold text-center mb-8">BIP39 to SSH Key Generator</h1>
         
@@ -274,40 +862,47 @@
     </div>
 
     <!-- Key Testing Modal -->
-    <div id="keyTestModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
-        <div class="bg-white rounded-lg p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="text-xl font-semibold">Test SSH Key Pair</h3>
-                <button id="closeTestModal" class="text-gray-500 hover:text-gray-700">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                    </svg>
-                </button>
-            </div>
-            
-            <div class="mb-4">
-                <h4 class="font-semibold mb-2">Private Key</h4>
-                <div class="p-3 bg-gray-100 rounded-lg font-mono text-sm overflow-x-auto">
-                    <pre id="testPrivateKey" class="whitespace-pre-wrap"></pre>
+    <div id="keyTestModal" class="hidden">
+        <div class="bg-white dark:bg-gray-800 rounded-lg">
+            <div class="modal-header">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-xl font-semibold">Test SSH Key Pair</h3>
+                    <button id="closeTestModal" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
                 </div>
             </div>
             
-            <div class="mb-4">
-                <h4 class="font-semibold mb-2">Public Key</h4>
-                <div class="p-3 bg-gray-100 rounded-lg font-mono text-sm overflow-x-auto">
-                    <pre id="testPublicKey" class="whitespace-pre-wrap"></pre>
+            <div class="modal-content">
+                <div class="mb-4">
+                    <h4 class="font-semibold mb-2">Private Key</h4>
+                    <textarea id="modalPrivateKey" 
+                        rows="6" 
+                        class="w-full px-3 py-2 bg-gray-900 text-gray-100 font-mono text-sm border border-gray-700 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-500 placeholder-gray-500"
+                        readonly></textarea>
+                </div>
+                
+                <div class="mb-4">
+                    <h4 class="font-semibold mb-2">Public Key</h4>
+                    <textarea id="modalPublicKey" 
+                        rows="3" 
+                        class="w-full px-3 py-2 bg-gray-900 text-gray-100 font-mono text-sm border border-gray-700 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-500 placeholder-gray-500"
+                        readonly></textarea>
+                </div>
+                
+                <div id="modalTestResult" class="hidden">
+                    <h4 class="font-semibold mb-2">Test Result</h4>
+                    <div id="modalTestResultContent" class="p-4 rounded-lg"></div>
                 </div>
             </div>
-            
-            <div class="mb-4">
-                <button id="testKeyPairBtn" class="w-full bg-green-500 text-white py-2 px-4 rounded-lg hover:bg-green-600 transition-colors">
+
+            <div class="modal-footer">
+                <button id="modalTestKeyPairBtn" 
+                    class="w-full bg-green-500 text-white py-2 px-4 rounded-lg hover:bg-green-600 transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800">
                     Test Key Pair
                 </button>
-            </div>
-            
-            <div id="testResult" class="hidden">
-                <h4 class="font-semibold mb-2">Test Result</h4>
-                <div id="testResultContent" class="p-4 rounded-lg"></div>
             </div>
         </div>
     </div>
@@ -328,11 +923,11 @@
             // Key testing modal elements
             const keyTestModal = document.getElementById('keyTestModal');
             const closeTestModal = document.getElementById('closeTestModal');
-            const testPrivateKey = document.getElementById('testPrivateKey');
-            const testPublicKey = document.getElementById('testPublicKey');
-            const testKeyPairBtn = document.getElementById('testKeyPairBtn');
-            const testResult = document.getElementById('testResult');
-            const testResultContent = document.getElementById('testResultContent');
+            const modalPrivateKey = document.getElementById('modalPrivateKey');
+            const modalPublicKey = document.getElementById('modalPublicKey');
+            const modalTestKeyPairBtn = document.getElementById('modalTestKeyPairBtn');
+            const modalTestResult = document.getElementById('modalTestResult');
+            const modalTestResultContent = document.getElementById('modalTestResultContent');
             
             // Initialize the SSH test server
             const sshTestServer = new SSHTestServer();
@@ -442,8 +1037,8 @@
                         // Add event listeners to test buttons
                         document.querySelectorAll('.test-key-btn').forEach(btn => {
                             btn.addEventListener('click', () => {
-                                testPrivateKey.value = btn.dataset.private;
-                                testPublicKey.value = btn.dataset.public;
+                                modalPrivateKey.value = btn.dataset.private;
+                                modalPublicKey.value = btn.dataset.public;
                                 keyTestModal.classList.remove('hidden');
                             });
                         });
@@ -571,30 +1166,45 @@
                 keyTestModal.classList.add('hidden');
             });
             
-            // Test the key pair
-            testKeyPairBtn.addEventListener('click', async () => {
-                const privateKey = testPrivateKey.value;
-                const publicKey = testPublicKey.value;
+            // Test key pair in modal
+            modalTestKeyPairBtn.addEventListener('click', async () => {
+                const privateKey = modalPrivateKey.value;
+                const publicKey = modalPublicKey.value;
+                
+                if (!privateKey || !publicKey) {
+                    modalTestResult.classList.remove('hidden');
+                    modalTestResultContent.innerHTML = `
+                        <div class="p-4 bg-red-100 text-red-700 rounded-lg">
+                            <p class="font-bold">✗ Error!</p>
+                            <p class="mt-2">Please ensure both private and public keys are provided.</p>
+                        </div>
+                    `;
+                    return;
+                }
                 
                 try {
                     // Show loading state
-                    testKeyPairBtn.disabled = true;
-                    testKeyPairBtn.textContent = 'Testing...';
+                    modalTestKeyPairBtn.disabled = true;
+                    modalTestKeyPairBtn.textContent = 'Testing...';
                     
-                    // Call the async testKeyPair function and await its result
+                    // Test the key pair
                     const result = await sshTestServer.testKeyPair(publicKey, privateKey);
-                    testResult.classList.remove('hidden');
+                    modalTestResult.classList.remove('hidden');
                     
                     if (result.success) {
-                        testResultContent.innerHTML = `
+                        // Format fingerprint with colons
+                        const formattedFingerprint = result.fingerprint.match(/.{2}/g).join(':');
+                        
+                        modalTestResultContent.innerHTML = `
                             <div class="p-4 bg-green-100 text-green-700 rounded-lg">
                                 <p class="font-bold">✓ Key pair verification successful!</p>
                                 <p class="mt-2">The private and public keys are a valid pair.</p>
-                                <p class="mt-2">Fingerprint: ${result.fingerprint}</p>
+                                <p class="mt-2">Fingerprint:</p>
+                                <p class="font-mono mt-1 break-all bg-green-50 p-2 rounded">${formattedFingerprint}</p>
                             </div>
                         `;
                     } else {
-                        testResultContent.innerHTML = `
+                        modalTestResultContent.innerHTML = `
                             <div class="p-4 bg-red-100 text-red-700 rounded-lg">
                                 <p class="font-bold">✗ Key pair verification failed!</p>
                                 <p class="mt-2">The private and public keys do not form a valid pair.</p>
@@ -604,8 +1214,8 @@
                     }
                 } catch (error) {
                     console.error('Error testing key pair:', error);
-                    testResult.classList.remove('hidden');
-                    testResultContent.innerHTML = `
+                    modalTestResult.classList.remove('hidden');
+                    modalTestResultContent.innerHTML = `
                         <div class="p-4 bg-red-100 text-red-700 rounded-lg">
                             <p class="font-bold">✗ Error testing key pair!</p>
                             <p class="mt-2">${error.message || 'Unknown error'}</p>
@@ -613,8 +1223,8 @@
                     `;
                 } finally {
                     // Reset button state
-                    testKeyPairBtn.disabled = false;
-                    testKeyPairBtn.textContent = 'Test Key Pair';
+                    modalTestKeyPairBtn.disabled = false;
+                    modalTestKeyPairBtn.textContent = 'Test Key Pair';
                 }
             });
 
@@ -647,11 +1257,15 @@
                     standaloneTestResult.classList.remove('hidden');
                     
                     if (result.success) {
+                        // Format fingerprint with colons
+                        const formattedFingerprint = result.fingerprint.match(/.{2}/g).join(':');
+                        
                         standaloneTestResult.innerHTML = `
                             <div class="p-4 bg-green-100 text-green-700 rounded-lg">
                                 <p class="font-bold">✓ Key pair verification successful!</p>
                                 <p class="mt-2">The private and public keys are a valid pair.</p>
-                                <p class="mt-2">Fingerprint: ${result.fingerprint}</p>
+                                <p class="mt-2">Fingerprint:</p>
+                                <p class="font-mono mt-1 break-all bg-green-50 p-2 rounded">${formattedFingerprint}</p>
                             </div>
                         `;
                     } else {
@@ -700,7 +1314,69 @@
                     document.getElementById('standaloneTestResult').classList.add('hidden');
                 });
             });
+
+            // Add event listeners for test buttons
+            document.addEventListener('click', async (e) => {
+                if (e.target.classList.contains('test-key-btn')) {
+                    const privateKeyPath = e.target.dataset.private;
+                    const publicKeyPath = e.target.dataset.public;
+                    
+                    try {
+                        // Show loading state
+                        e.target.disabled = true;
+                        e.target.textContent = 'Loading...';
+                        
+                        // Fetch the key contents using absolute paths
+                        const [privateKeyResponse, publicKeyResponse] = await Promise.all([
+                            fetch(`/read-key?path=${encodeURIComponent(privateKeyPath)}`),
+                            fetch(`/read-key?path=${encodeURIComponent(publicKeyPath)}`)
+                        ]);
+                        
+                        if (!privateKeyResponse.ok || !publicKeyResponse.ok) {
+                            throw new Error('Failed to read key files');
+                        }
+                        
+                        const privateKey = await privateKeyResponse.text();
+                        const publicKey = await publicKeyResponse.text();
+                        
+                        // Set the key values in the modal textareas
+                        modalPrivateKey.value = privateKey.trim();
+                        modalPublicKey.value = publicKey.trim();
+                        
+                        // Show the modal
+                        keyTestModal.classList.remove('hidden');
+                        
+                        // Clear any previous test results
+                        modalTestResult.classList.add('hidden');
+                        modalTestResultContent.innerHTML = '';
+                        
+                    } catch (error) {
+                        console.error('Error loading keys:', error);
+                        alert('Failed to load key files. Please try again.');
+                    } finally {
+                        // Reset button state
+                        e.target.disabled = false;
+                        e.target.textContent = 'Test Key Pair';
+                    }
+                }
+            });
         });
+
+        // Theme handling
+        function setTheme(theme) {
+            document.documentElement.setAttribute('data-theme', theme);
+            localStorage.setItem('theme', theme);
+        }
+
+        function toggleTheme() {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+            setTheme(newTheme);
+        }
+
+        // Set initial theme
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        setTheme(savedTheme);
     </script>
 </body>
 </html> 

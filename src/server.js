@@ -142,43 +142,31 @@ app.post('/restore', async (req, res) => {
 
 app.get('/read-key', (req, res) => {
     try {
-        const { path: keyPath } = req.query;
+        const keyPath = req.query.path;
         
         if (!keyPath) {
-            return res.status(400).json({ 
-                success: false, 
-                error: 'Key path is required' 
-            });
+            return res.status(400).json({ error: 'Key path is required' });
         }
-        
+
         // Security check: ensure the path is within the project directory
         const projectRoot = path.resolve(__dirname, '..');
         const requestedPath = path.resolve(projectRoot, keyPath);
         
         if (!requestedPath.startsWith(projectRoot)) {
-            return res.status(400).json({ 
-                success: false, 
-                error: 'Key path must be within the project folder' 
-            });
+            return res.status(400).json({ error: 'Invalid key path' });
         }
-        
-        // Check if the file exists
+
+        // Check if file exists
         if (!fs.existsSync(requestedPath)) {
-            return res.status(404).json({ 
-                success: false, 
-                error: 'Key file not found' 
-            });
+            return res.status(404).json({ error: 'Key file not found' });
         }
-        
+
         // Read the key file
-        const content = fs.readFileSync(requestedPath, 'utf8');
-        return res.json({ success: true, content });
+        const keyContent = fs.readFileSync(requestedPath, 'utf8');
+        res.send(keyContent.trim());
     } catch (error) {
-        console.error('Error reading key:', error);
-        return res.status(500).json({ 
-            success: false, 
-            error: error.message || 'Error reading key' 
-        });
+        console.error('Error reading key file:', error);
+        res.status(500).json({ error: 'Failed to read key file' });
     }
 });
 
