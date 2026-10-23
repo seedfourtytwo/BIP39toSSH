@@ -5,7 +5,8 @@
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",
-    "dev": "nodemon src/server.js"
+    "dev": "node --watch src/server.js",
+    "test": "node --test"
   },
   "keywords": [
     "bip39",
@@ -27,15 +28,11 @@
   "homepage": "https://github.com/seedfourtytwo/BIP39toSSH#readme",
   "dependencies": {
     "bip39": "^3.1.0",
-    "body-parser": "^1.20.2",
-    "ejs": "^3.1.9",
-    "express": "^4.18.2",
+    "ejs": "^3.1.10",
+    "express": "^4.22.3",
     "tweetnacl": "^1.0.3"
   },
-  "devDependencies": {
-    "nodemon": "^3.1.0"
-  },
   "engines": {
-    "node": ">=14.0.0"
+    "node": ">=20"
   }
 }
