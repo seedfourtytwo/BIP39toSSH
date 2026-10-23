@@ -4,9 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BIP39 to SSH Key Generator</title>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-    <script src="/js/ssh-test-server.js"></script>
-    <style>
+    <link href="/css/tailwind.css" rel="stylesheet">
+    <script src="/js/ssh-test-server.js" nonce="<%= nonce %>"></script>
+    <style nonce="<%= nonce %>">
         :root[data-theme="light"] {
             --bg-color: #ffffff;
             --text-color: #333333;
@@ -627,7 +627,7 @@
     </style>
 </head>
 <body class="bg-gray-100 min-h-screen">
-    <button class="theme-toggle" onclick="toggleTheme()" title="Toggle theme">🌓</button>
+    <button class="theme-toggle" id="themeToggle" title="Toggle theme">🌓</button>
     <div class="container mx-auto px-4 py-8">
         <h1 class="text-3xl font-bold text-center mb-8">BIP39 to SSH Key Generator</h1>
         
@@ -907,7 +907,11 @@
         </div>
     </div>
 
-    <script>
+    <script nonce="<%= nonce %>">
+        function escapeHtml(value) {
+            return String(value ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
             const actionRadios = document.querySelectorAll('input[name="action"]');
             const existingSeedSection = document.getElementById('existingSeedSection');
@@ -1002,7 +1006,7 @@
                         // Format the result
                         resultContent.innerHTML = `
                             <div class="mb-6 p-4 bg-gray-50 rounded-lg">
-                                <p class="text-gray-700"><strong>Output Directory:</strong> ${data.baseDir}</p>
+                                <p class="text-gray-700"><strong>Output Directory:</strong> ${escapeHtml(data.baseDir)}</p>
                                 <p class="text-gray-700 mt-2"><strong>Passphrase Protection:</strong> ${requestData.passphrase ? 'Yes' : 'No'}</p>
                                 <p class="text-gray-700 mt-2"><strong>Number of Keys:</strong> ${Array.isArray(data.keys) ? data.keys.length : 0}</p>
                             </div>
@@ -1013,11 +1017,11 @@
                                         <div class="space-y-1 mb-4">
                                             <p><strong>Location:</strong> key-${index + 1}/</p>
                                             <p><strong>Files:</strong> id_ed25519, id_ed25519.pub, derivation.txt</p>
-                                            <p><strong>Derivation Path:</strong> ${key.derivationPath}</p>
+                                            <p><strong>Derivation Path:</strong> ${escapeHtml(key.derivationPath)}</p>
                                         </div>
                                         <button class="bg-green-500 text-white py-2 px-4 rounded-lg hover:bg-green-600 transition-colors test-key-btn" 
-                                            data-private="${key.privateKeyPath}" 
-                                            data-public="${key.publicKeyPath}">
+                                            data-private="${escapeHtml(key.privateKeyPath)}" 
+                                            data-public="${escapeHtml(key.publicKeyPath)}">
                                             Test Key Pair
                                         </button>
                                     </div>
@@ -1045,7 +1049,7 @@
                     } else {
                         resultContent.innerHTML = `
                             <div class="p-4 bg-red-50 text-red-700 rounded-lg">
-                                <p><strong>Error:</strong> ${data.error}</p>
+                                <p><strong>Error:</strong> ${escapeHtml(data.error)}</p>
                             </div>
                         `;
                         resultSection.classList.remove('hidden');
@@ -1054,7 +1058,7 @@
                     console.error('Error:', error);
                     resultContent.innerHTML = `
                         <div class="p-4 bg-red-50 text-red-700 rounded-lg">
-                            <p><strong>Error:</strong> ${error.message || 'An unknown error occurred'}</p>
+                            <p><strong>Error:</strong> ${escapeHtml(error.message || 'An unknown error occurred')}</p>
                         </div>
                     `;
                     resultSection.classList.remove('hidden');
@@ -1101,7 +1105,7 @@
                         // Format the result
                         restoreResultContent.innerHTML = `
                             <div class="mb-6 p-4 bg-gray-50 rounded-lg">
-                                <p class="text-gray-700"><strong>Output Directory:</strong> ${data.baseDir}</p>
+                                <p class="text-gray-700"><strong>Output Directory:</strong> ${escapeHtml(data.baseDir)}</p>
                                 <p class="text-gray-700 mt-2"><strong>Passphrase Protection:</strong> ${requestData.passphrase ? 'Yes' : 'No'}</p>
                                 <p class="text-gray-700 mt-2"><strong>Number of Keys:</strong> ${Array.isArray(data.keys) ? data.keys.length : 0}</p>
                             </div>
@@ -1112,7 +1116,7 @@
                                         <div class="space-y-1 mb-4">
                                             <p><strong>Location:</strong> key-${index + 1}/</p>
                                             <p><strong>Files:</strong> id_ed25519, id_ed25519.pub, derivation.txt</p>
-                                            <p><strong>Derivation Path:</strong> ${key.derivationPath}</p>
+                                            <p><strong>Derivation Path:</strong> ${escapeHtml(key.derivationPath)}</p>
                                         </div>
                                     </div>
                                 `).join('') : '<p class="text-red-500">No keys were restored</p>'}
@@ -1124,7 +1128,7 @@
                     } else {
                         restoreResultContent.innerHTML = `
                             <div class="p-4 bg-red-50 text-red-700 rounded-lg">
-                                <p><strong>Error:</strong> ${data.error}</p>
+                                <p><strong>Error:</strong> ${escapeHtml(data.error)}</p>
                             </div>
                         `;
                         restoreResult.classList.remove('hidden');
@@ -1133,7 +1137,7 @@
                     console.error('Error:', error);
                     restoreResultContent.innerHTML = `
                         <div class="p-4 bg-red-50 text-red-700 rounded-lg">
-                            <p><strong>Error:</strong> ${error.message || 'An unknown error occurred'}</p>
+                            <p><strong>Error:</strong> ${escapeHtml(error.message || 'An unknown error occurred')}</p>
                         </div>
                     `;
                     restoreResult.classList.remove('hidden');
@@ -1192,8 +1196,7 @@
                     modalTestResult.classList.remove('hidden');
                     
                     if (result.success) {
-                        // Format fingerprint with colons
-                        const formattedFingerprint = result.fingerprint.match(/.{2}/g).join(':');
+                        const formattedFingerprint = escapeHtml(result.fingerprint);
                         
                         modalTestResultContent.innerHTML = `
                             <div class="p-4 bg-green-100 text-green-700 rounded-lg">
@@ -1208,7 +1211,7 @@
                             <div class="p-4 bg-red-100 text-red-700 rounded-lg">
                                 <p class="font-bold">✗ Key pair verification failed!</p>
                                 <p class="mt-2">The private and public keys do not form a valid pair.</p>
-                                <p class="mt-2">Error: ${result.error || 'Unknown error'}</p>
+                                <p class="mt-2">Error: ${escapeHtml(result.error || 'Unknown error')}</p>
                             </div>
                         `;
                     }
@@ -1218,7 +1221,7 @@
                     modalTestResultContent.innerHTML = `
                         <div class="p-4 bg-red-100 text-red-700 rounded-lg">
                             <p class="font-bold">✗ Error testing key pair!</p>
-                            <p class="mt-2">${error.message || 'Unknown error'}</p>
+                            <p class="mt-2">${escapeHtml(error.message || 'Unknown error')}</p>
                         </div>
                     `;
                 } finally {
@@ -1257,8 +1260,7 @@
                     standaloneTestResult.classList.remove('hidden');
                     
                     if (result.success) {
-                        // Format fingerprint with colons
-                        const formattedFingerprint = result.fingerprint.match(/.{2}/g).join(':');
+                        const formattedFingerprint = escapeHtml(result.fingerprint);
                         
                         standaloneTestResult.innerHTML = `
                             <div class="p-4 bg-green-100 text-green-700 rounded-lg">
@@ -1273,7 +1275,7 @@
                             <div class="p-4 bg-red-100 text-red-700 rounded-lg">
                                 <p class="font-bold">✗ Key pair verification failed!</p>
                                 <p class="mt-2">The private and public keys do not form a valid pair.</p>
-                                <p class="mt-2">Error: ${result.error || 'Unknown error'}</p>
+                                <p class="mt-2">Error: ${escapeHtml(result.error || 'Unknown error')}</p>
                             </div>
                         `;
                     }
@@ -1283,7 +1285,7 @@
                     standaloneTestResult.innerHTML = `
                         <div class="p-4 bg-red-100 text-red-700 rounded-lg">
                             <p class="font-bold">✗ Error testing key pair!</p>
-                            <p class="mt-2">${error.message || 'Unknown error'}</p>
+                            <p class="mt-2">${escapeHtml(error.message || 'Unknown error')}</p>
                         </div>
                     `;
                 } finally {
@@ -1373,6 +1375,8 @@
             const newTheme = currentTheme === 'light' ? 'dark' : 'light';
             setTheme(newTheme);
         }
+
+        document.getElementById('themeToggle').addEventListener('click', toggleTheme);
 
         // Set initial theme
         const savedTheme = localStorage.getItem('theme') || 'dark';

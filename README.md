@@ -4,16 +4,18 @@ A web application for generating and managing SSH keys from BIP39 seed phrases. 
 
 ## Prerequisites
 
-- Node.js (v14 or higher)
-- npm (v6 or higher)
+- Node.js (v20 or higher)
+- npm
 
 ## Dependencies
 
-- `bip39`: ^3.1.0 (BIP39 seed phrase generation)
-- `ed25519`: ^2.0.0 (Ed25519 key pair generation)
-- `express`: ^4.18.2 (Web server)
-- `ejs`: ^3.1.9 (Template engine)
-- `crypto`: (Node.js built-in, for cryptographic operations)
+- `bip39` (BIP39 seed phrase generation and checksum validation)
+- `tweetnacl` (Ed25519 key pair generation)
+- `express` (local web server)
+- `ejs` (template engine)
+- `crypto` (Node.js built-in: PBKDF2, random numbers)
+
+The page loads no third-party scripts or stylesheets; Tailwind CSS is served from `src/public/css/`.
 
 ## Features
 
@@ -25,7 +27,7 @@ A web application for generating and managing SSH keys from BIP39 seed phrases. 
 - Customizable output directory
 - Default output directory: src/generated-keys
 - Automatic derivation path management
-- Default derivation path: m/44'/60'/0'/0/0 (increments for each key pair)
+- Default derivation path: m/44'/0'/0'/0/0 (increments for each key pair)
 
 ### Key Restoration
 - Restore SSH keys from existing seed phrases
@@ -34,7 +36,7 @@ A web application for generating and managing SSH keys from BIP39 seed phrases. 
 - Optional passphrase protection
 - Customizable output directory
 - Default output directory: src/restored-keys
-- Default derivation path: m/44'/60'/0'/0/0 (can be customized)
+- Default derivation path: m/44'/0'/0'/0/0 (can be customized)
 
 ### Key Testing
 - Verify SSH key pair validity
@@ -46,18 +48,22 @@ A web application for generating and managing SSH keys from BIP39 seed phrases. 
 
 ### Cryptographic Algorithms
 - **BIP39**: For seed phrase generation and management
-- **PBKDF2**: For key derivation with 100,000 iterations
-- **HMAC-SHA512**: For deterministic key material generation
+- **PBKDF2-HMAC-SHA512**: For key derivation with 100,000 iterations
 - **Ed25519**: For SSH key pair generation
-- **SHA-256**: For key fingerprint generation
+- **SHA-256**: For key fingerprints (same `SHA256:` text as `ssh-keygen -l`)
 
 ### Security Measures
 - Deterministic key generation
 - Secure random number generation for new seeds
-- Proper key length enforcement (64 bytes for Ed25519)
-- Secure key storage with proper file permissions
+- Private keys written with mode 0600 in folders with mode 0700; the seed phrase is never written to disk
 - Passphrase protection support
-- No key material stored in memory longer than necessary
+- The server listens on 127.0.0.1 only and refuses requests for any other host name
+- Responses are sent with `Cache-Control: no-store` and a strict Content Security Policy
+
+**Where the work happens:** key derivation runs in the local Node.js server, not in the
+browser. The seed phrase travels from the page to `127.0.0.1` and the keys are written to
+disk on the same machine. Run it on a computer you trust, ideally offline. Setting `HOST`
+to anything other than a loopback address exposes seed phrases to your network.
 
 ## Installation
 
@@ -90,9 +96,9 @@ The application will be available at `http://localhost:3000`
    - Optionally add a passphrase (recommended for additional security)
    - Specify output directory (optional, defaults to src/generated-keys)
    - Default derivation paths will be:
-     * First key: m/44'/60'/0'/0/0
-     * Second key: m/44'/60'/0'/0/1
-     * Third key: m/44'/60'/0'/0/2
+     * First key: m/44'/0'/0'/0/0
+     * Second key: m/44'/0'/0'/0/1
+     * Third key: m/44'/0'/0'/0/2
      * And so on...
 3. For existing seeds:
    - Enter your seed phrase (12 or 24 words)
@@ -107,11 +113,11 @@ The application will be available at `http://localhost:3000`
 
 1. Enter your seed phrase (12 or 24 words)
 2. Enter derivation paths (one per line)
-   - Default path: m/44'/60'/0'/0/0
+   - Default path: m/44'/0'/0'/0/0
    - For multiple keys, increment the last number:
-     * m/44'/60'/0'/0/0
-     * m/44'/60'/0'/0/1
-     * m/44'/60'/0'/0/2
+     * m/44'/0'/0'/0/0
+     * m/44'/0'/0'/0/1
+     * m/44'/0'/0'/0/2
    - You can use different paths for different purposes
 3. Enter passphrase if used during generation
 4. Specify output directory (optional, defaults to src/restored-keys)
@@ -162,15 +168,26 @@ output-directory/
 ## Technical Details
 
 ### Key Derivation Process
-1. Seed phrase → BIP39 seed
-2. BIP39 seed + passphrase → master seed
-3. Master seed + derivation path → private key material
-4. Private key material → Ed25519 key pair
+1. Seed phrase + passphrase → 64-byte BIP39 seed (standard BIP39)
+2. Ed25519 seed = PBKDF2-HMAC-SHA512(BIP39 seed, salt = derivation path text, 100,000 rounds, 32 bytes)
+3. Ed25519 seed → Ed25519 key pair
+
+The derivation path is used only as a label (the PBKDF2 salt). It is **not** BIP32 or
+SLIP-10 derivation, so other wallets or tools will not produce the same keys from the same path.
+
+Keys written before October 2026 were not valid OpenSSH files and their public key did not
+match the private key. The private seed is unchanged, so restoring with the same seed phrase,
+passphrase and path now writes working files.
 
 ### File Formats
-- Private keys: OpenSSH format
-- Public keys: OpenSSH format
-- Derivation paths: BIP32 format
+- Private keys: unencrypted OpenSSH format (`openssh-key-v1`); add a passphrase with `ssh-keygen -p -f id_ed25519`
+- Public keys: OpenSSH `authorized_keys` format
+- Derivation paths: BIP32-style text, used as a salt
+
+### Tests
+`npm test` checks the word list against the official BIP39 list, the official BIP39 test
+vector, pinned Ed25519 keys computed with an independent implementation, that `ssh-keygen`
+accepts the files, and the server's security headers and path checks.
 
 ## Contributing
 
